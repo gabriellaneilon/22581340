@@ -3,7 +3,7 @@
 # Remove comments and add values where applicable.
 # The descriptions below should be self-explanatory
 
-title: "22581340_NameofQ1"
+title: "22581340_Q1"
 #subtitle: "This will appear as Right Header"
 
 documentclass: "elsarticle"
@@ -28,7 +28,7 @@ AddTitle: TRUE # Use FALSE when submitting to peer reviewed platform. This will 
 Author1: "Gabriella Neilon"  # First Author - note the thanks message displayed as an italic footnote of first page.
 Ref1: "Stellenbosch University" # First Author's Affiliation
 Email1: "22581340\\@sun.ac.za" # First Author's Email address
-# 
+
 # Author2: "John Smith"
 # Ref2: "Some other Institution, Cape Town, South Africa"
 # Email2: "John\\@gmail.com"
@@ -91,6 +91,8 @@ output:
     template: Tex/TexDefault.txt
     fig_width: 3.5 # Adjust default figure sizes. This can also be done in the chunks of the text.
     fig_height: 3.5
+abstract: |
+  The first question deals with Happiness. Will write more for final exam, this is just to test how it works. All of the write-ups will be subpar, as the purpose is first to get the hand of things.
 ---
 
 <!-- First: Set your default preferences for chunk options: -->

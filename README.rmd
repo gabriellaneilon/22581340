@@ -1,10 +1,10 @@
 ---
-output:
+output:github_document
   md_document:
-    variant: markdown_github
+    variant: 
 ---
 
-# Purpose
+# Purpose: for the exam
 
 Purpose of this work folder.
 
@@ -19,6 +19,24 @@ rm(list = ls()) # Clean your environment:
 gc() # garbage collection - It can be useful to call gc after a large object has been removed, as this may prompt R to return memory to the operating system.
 library(tidyverse)
 list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
+
+
+Texevier::create_template(directory = "/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/exam prep",
+                          template_name = "Project_Question1",
+                          build_project = T, open_project = T)
+
+Texevier::create_template(directory = "/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/exam prep",
+                          template_name = "Project_Question2",
+                          build_project = T, open_project = T)
+
+Texevier::create_template(directory = "/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/exam prep",
+                          template_name = "Project_Question3",
+                          build_project = T, open_project = T)
+
+Texevier::create_template(directory = "/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/exam prep",
+                          template_name = "Project_Question4",
+                          build_project = T, open_project = T)
+
 ```
 
 
