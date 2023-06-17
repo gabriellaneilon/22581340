@@ -3,7 +3,7 @@
 # Remove comments and add values where applicable.
 # The descriptions below should be self-explanatory
 
-title: "22581340_Q2"
+title: "22581340_Weather"
 #subtitle: "This will appear as Right Header"
 
 documentclass: "elsarticle"
@@ -92,7 +92,7 @@ output:
     fig_width: 3.5 # Adjust default figure sizes. This can also be done in the chunks of the text.
     fig_height: 3.5
 abstract: |
-  The first question deals with Happiness. Will write more for final exam, this is just to test how it works. All of the write-ups will be subpar, as the purpose is first to get the hand of things.
+  Hey bestie, I wrote you a little report to prove you wrong.
 ---
 
 
@@ -123,15 +123,8 @@ write_rds(Example_data, path = "data/Example_data.rds")
 <!-- ############################## -->
 
 # Introduction \label{Introduction}
+I've said it before and I'll say it again cloud-er - even though the sun does come out in London, on average, it will not last long.
 
-Write a short introduction of the question and what you will be doing
-
-
-
-
-# You can make this question 1a for e.g. or do some exploratory things\label{Exploratory things}
-
-write what you're going to be doing
 
 <!-- The following is a code chunk. It must have its own unique name (after the r), or no name. After the comma follows commands for R which are self-explanatory. By default, the code and messages will not be printed in your pdf, just the output: -->
 
@@ -148,14 +141,12 @@ source("code/Example_Plot_Scatter.R") # Load a function from your 'code' folder.
 source( "code/Data_Create.R") 
 
 #obviously use your own paths
-
+weather <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/London/london_weather.csv")
 
 
 ```
 
 
-
-# Here you can do the second part of your Question/Results
 
 
 
@@ -195,22 +186,59 @@ source( "code/Data_Create.R")
 <!-- $$ -->
 
 
-## Subsection
-Write down stuff here on your train of thought maybe
+# Sun of a beach
+In this first graph, I demonstrate that even though the sun does come out, it will not last long. Therefore, if you try to catch some sun, you will probably mist. Pun intended.
+
+```{r}
+
+
+# Convert the date variable to a Date format
+weather$date <- as.Date(as.character(weather$date), format = "%Y%m%d")
+
+# Calculate the average daily sunshine duration for each month
+monthly_sunshine <- weather %>%
+  group_by(year = year(date), month = month(date)) %>%
+  summarize(avg_sunshine = mean(sunshine, na.rm = TRUE))
+
+# Create a line plot showing the monthly variation in sunshine duration
+ggplot(monthly_sunshine, aes(x = month, y = avg_sunshine, group = year)) +
+  geom_line(color = "gold") +
+  geom_point(color = "black") +
+  labs(title = "Monthly Variation in Sunshine Duration",
+       x = "Month", y = "Average Daily Sunshine Duration") +
+  scale_x_continuous(breaks = 1:12, labels = month.abb) +
+  theme_bw()
 
 
 
-```{r ShortTable, results = 'asis'}
+
+
+
+
 
 
 
 ```
 
-## Another Subsection
+# Weather extremes
+In this graph, I show that over the past 40 years London has seen some extreme weather conditions. 
 
-```{r LongTable, results = 'asis'}
+```{r, results='asis'}
 
+# Load the necessary libraries
+library(dplyr)
+library(ggplot2)
+library(lubridate)
 
+# Create a dual-axis line plot
+ggplot(weather, aes(x = date)) +
+  geom_line(aes(y = max_temp, color = "Maximum Temperature"), size = 1) +
+  geom_line(aes(y = min_temp, color = "Minimum Temperature"), size = 1, linetype = "dashed") +
+  scale_color_manual(values = c("Maximum Temperature" = "red", "Minimum Temperature" = "blue")) +
+  labs(title = "Temperature Extremes in London",
+       x = "Date", y = "Temperature (°C)") +
+  theme_bw() +
+  theme(legend.position = "top")
 ```
 
 \hfill
@@ -218,18 +246,15 @@ Write down stuff here on your train of thought maybe
 <!-- hfill can be used to create a space, like here between text and table. -->
 
 
-# Conclusion/Discussion
+# Conclusion
+In conclusion, it's not always sunshine and rainbows in London and the extreme weather can be irksome.
 
-Write short conclusion or discussion of all results
-I hope you find this template useful. Remember, stackoverflow is your friend - use it to find answers to questions. Feel free to write me a mail if you have any questions regarding the use of this package. To cite this package, simply type citation("Texevier") in Rstudio to get the citation for @Texevier (Note that uncited references in your bibtex file will not be included in References).
 <!-- Make title of bibliography here: -->
 <!-- \newpage -->
 
 \newpage
 
-# References {-}
 
-<div id="refs"></div>
 
 
 

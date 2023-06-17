@@ -3,7 +3,7 @@
 # Remove comments and add values where applicable.
 # The descriptions below should be self-explanatory
 
-title: "22581340_Q3"
+title: "22581340_Music"
 #subtitle: "This will appear as Right Header"
 
 documentclass: "elsarticle"
@@ -89,10 +89,10 @@ output:
   pdf_document:
     keep_tex: TRUE
     template: Tex/TexDefault.txt
-    fig_width: 3.5 # Adjust default figure sizes. This can also be done in the chunks of the text.
-    fig_height: 3.5
+    fig_width: 10 # Adjust default figure sizes. This can also be done in the chunks of the text.
+    fig_height: 12
 abstract: |
-  The first question deals with Happiness. Will write more for final exam, this is just to test how it works. All of the write-ups will be subpar, as the purpose is first to get the hand of things.
+  This report delves into the aspects of popularity, style, and emotion found within the studio albums of Coldplay and Metallica.
 ---
 
 <!-- First: Set your default preferences for chunk options: -->
@@ -114,6 +114,27 @@ Example_data <- Texevier::Ex_Dat
 # This means that when working in a .Rproj file, you never need to use getwd() - it is assumed as your base root automatically.
 write_rds(Example_data, path = "data/Example_data.rds")
 
+coldplay <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Coldplay_vs_Metallica/Coldplay.csv")
+
+# clean <- try[grepl(paste(c("Midnights \\(3am Edition\\)", "Taylor's Version", "deluxe version", "Deluxe Edition", "Live", "Radio", "Special", "Taylor Swift", "reputation", "Lover"), collapse = "|"), try$album, ignore.case = TRUE), ]
+
+
+coldplay_studio <- coldplay[!grepl(paste(c("Live", "Tour Edition", "\\(Live\\)", "\\(Prospekts March Edition\\)", "Love in Tokyo"), collapse = "|"), coldplay$album_name, ignore.case = TRUE), ]
+
+
+coldplay_studio <- coldplay_studio[!grepl(paste(c("Charlie Brown - Live from Glastonbury, 2011",
+                   "Life Is for Living - Live from Glastonbury, 2011",
+                   "Every Teardrop Is a Waterfall - Live from Glastonbury, 2011"), collapse = "|"), coldplay_studio$name, ignore.case = TRUE), ]
+coldplay_studio <- coldplay_studio %>% rename(album=album_name)
+
+
+metallica <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Coldplay_vs_Metallica/metallica.csv")
+
+metallica_studio <- metallica[!grepl(paste(c("Live",  "\\(Remastered 2021\\)", "\\(Remastered Deluxe Box Set\\)", "\\(Deluxe / Remastered\\)", "\\(Deluxe Box Set / Remastered\\)", "Live In "), collapse = "|"), metallica$album, ignore.case = TRUE), ]
+
+rows_to_remove <- c("Live In Brazil (1993 \x93 2017)","Live In Argentina (1993 \x93 2017)", "Live In Chile (1993 \x93 2017)", "...And Justice For All","...And Justice for All (Remastered)", "Ride The Lightning (Remastered)","Kill Em All (Remastered)"  )
+metallica_studio <- metallica_studio[!metallica_studio$album %in% rows_to_remove, ]
+
 ```
 
 
@@ -123,14 +144,9 @@ write_rds(Example_data, path = "data/Example_data.rds")
 
 # Introduction \label{Introduction}
 
-Write a short introduction of the question and what you will be doing
+In this report, I delve into the characteristics of two iconic bands, Coldplay and Metallica, exploring their studio albums in terms of popularity, style, and emotion. I analyse various factors such as acousticness, danceability, energy, instrumentalness, loudness, speechiness, valence, and tempo to gain insights into the unique attributes of their music. Additionally, we examine the emotions evoked by their albums, focusing on happiness and sadness as key emotional indicators. By delving into these aspects, we aim to uncover the distinct features that define the music of Coldplay and Metallica, providing a deeper understanding of their artistic expressions.
 
 
-
-
-# You can make this question 1a for e.g. or do some exploratory things\label{Exploratory things}
-
-write what you're going to be doing
 
 <!-- The following is a code chunk. It must have its own unique name (after the r), or no name. After the comma follows commands for R which are self-explanatory. By default, the code and messages will not be printed in your pdf, just the output: -->
 
@@ -143,18 +159,15 @@ write what you're going to be doing
 ```{r Figure2, warning =  FALSE, fig.align = 'center', fig.cap = "Caption Here \\label{Figure2}", fig.height = 3, fig.width = 6, dev = 'png'}
 
 
-source("code/Example_Plot_Scatter.R") # Load a function from your 'code' folder. This e.g. plots scatters to your own preferences.
-source( "code/Data_Create.R") 
-
-#obviously use your own paths
+source("code/classify_album_emotion.R")
+source("code/create_style_evolution_plot.R")
+source("code/popularity_plot.R")
 
 
 
 ```
 
 
-
-# Here you can do the second part of your Question/Results
 
 
 
@@ -194,41 +207,77 @@ source( "code/Data_Create.R")
 <!-- $$ -->
 
 
-## Subsection
-Write down stuff here on your train of thought maybe
+# Part A
+In this section I explore the popularity per album of each band.
+
+## Coldplay
+```{r}
+library(glue)
+popularity_plot(coldplay_studio, "Popularity per Album (Coldplay)")
+```
 
 
+This graph shows that the most popular album of Coldplay is "Parachutes", with the most favoured song "Yellow".
 
-```{r ShortTable, results = 'asis'}
-
+## Metallica
+```{r}
+popularity_plot(metallica_studio, "Popularity per Album (Metallica")
 
 
 ```
+This graph shows that the most popular album of Metallica is "Metallica", with the most favoured song "Enter Sandman".
 
-## Another Subsection
+Based on popularity, Coldplay is favoured over Metallica.
 
-```{r LongTable, results = 'asis'}
+# Part B
+In this section I explore the style of the bands' styles across different albums.
 
+## Coldplay
+
+```{r, fig.height=8,fig.width=10, out.extra='angle=90'}
+create_style_evolution_plot(coldplay_studio, "Evolution of Coldplay's Style")
+```
+
+Among all the albums, "A Rush of Blood to the Head" stands out for its remarkable combination of acousticness, danceability, energy, instrumentalness, liveness, loudness, speechiness, valence, and tempo. On the other hand, the most popular album, "Parachutes," does not exhibit any distinctive characteristics that distinguish it from the other albums.
+
+## Metallica
+```{r, fig.height=8,fig.width=10, out.extra='angle=90'}
+create_style_evolution_plot(metallica_studio, "Evolution of Metallica's Style")
 
 ```
 
+In general, Metallica's albums exhibit lower levels of speechiness compared to Coldplay. Furthermore, when it comes to danceability, energy, instrumentalness, liveness, loudness, valence, and tempo, Metallica's albums diverge significantly from Coldplay's, showcasing a distinct and more pronounced range.
+
+# Part C
+In this section, I explore the emotional characteristics of each album, focusing on two primary emotions: "Happy" and "Sad". To simplify the analysis, I selected specific variables such as acousticness, danceability, energy, instrumentalness, loudness, speechiness, valence, and tempo. I established threshold values for each variable by referencing the emotional qualities of Coldplay's saddest and happiest songs, leveraging my familiarity with their music.
+
+## Coldplay
+
+```{r}
+classify_album_emotion(coldplay_studio, "Emotion Classification by Album (Coldplay)")
+```
+
+Overall, Coldplay's albums exhibit "Sad" characteristics.
+
+# Metallica
+```{r}
+classify_album_emotion(metallica_studio, "Emotion Classification by Album(Metallica)")
+
+```
+
+Metallica's albums showcase a noteworthy blend of "Happy" and deeply emotive compositions. While some albums lean towards a more uplifting and energetic vibe, others delve into profound emotional depths. This observation resonates with our earlier analysis of their style, illuminating the multifaceted nature of Metallica's music. By exploring both the stylistic elements and the range of emotions conveyed in their albums, we gain a richer understanding of the artistic complexity that defines Metallica's discography.
 \hfill
 
 <!-- hfill can be used to create a space, like here between text and table. -->
 
 
-# Conclusion/Discussion
-
-Write short conclusion or discussion of all results
-I hope you find this template useful. Remember, stackoverflow is your friend - use it to find answers to questions. Feel free to write me a mail if you have any questions regarding the use of this package. To cite this package, simply type citation("Texevier") in Rstudio to get the citation for @Texevier (Note that uncited references in your bibtex file will not be included in References).
+# Discussion
+In conclusion, by considering your desired mood, whether it be "Happy" or "Sad," you can now select an album that perfectly aligns with your emotional state. Coldplay's music is a poignant choice if you seek a heartfelt catharsis, as their compositions resonate deeply and evoke emotional responses. On the other hand, Metallica's albums offer a rich tapestry of artistic complexity, providing a captivating journey that demands attentive listening. However, it's worth noting that Metallica's music is best appreciated when experienced in a deliberate sequence rather than on shuffle mode. Regardless of your preference, both Coldplay and Metallica offer profound musical experiences tailored to your desired emotional landscape.
 <!-- Make title of bibliography here: -->
 <!-- \newpage -->
 
 \newpage
 
-# References {-}
-
-<div id="refs"></div>
 
 
 

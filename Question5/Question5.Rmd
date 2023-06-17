@@ -1,0 +1,334 @@
+---
+# IMPORTANT: Change settings here, but DO NOT change the spacing.
+# Remove comments and add values where applicable.
+# The descriptions below should be self-explanatory
+
+title: "22581340_Apps"
+#subtitle: "This will appear as Right Header"
+
+documentclass: "elsarticle"
+
+# --------- Thesis title (Optional - set to FALSE by default).
+# You can move the details below around as you please.
+Thesis_FP: FALSE
+# Entry1: "An unbelievable study with a title spanning multiple lines."
+# Entry2: "\\textbf{Some Guy}" # textbf for bold
+# Entry3: "A thesis submitted toward the degree of Doctor of Philosophy"
+# Uni_Logo: Tex/Logo.png # Place a logo in the indicated location (from your root, e.g. defaults to ~/Tex/Logo.png) and uncomment this line. Leave uncommented for no image
+# Logo_width: 0.3 # If using a logo - use this to set width (size) of image
+# Entry4: "Under the supervision of: \\vfill Prof. Joe Smith and Dr. Frank Smith"
+# Entry5: "Stellenbosch University"
+# Entry6: April 2020
+# Entry7:
+# Entry8:
+
+# --------- Front Page
+# Comment: ----- Follow this pattern for up to 5 authors
+AddTitle: TRUE # Use FALSE when submitting to peer reviewed platform. This will remove author names.
+Author1: "Gabriella Neilon"  # First Author - note the thanks message displayed as an italic footnote of first page.
+Ref1: "Stellenbosch University" # First Author's Affiliation
+Email1: "22581340\\@sun.ac.za" # First Author's Email address
+
+# Author2: "John Smith"
+# Ref2: "Some other Institution, Cape Town, South Africa"
+# Email2: "John\\@gmail.com"
+# CommonAffiliation_12: TRUE # If Author 1 and 2 have a common affiliation. Works with _13, _23, etc.
+# 
+# Author3: "John Doe"
+# Email3: "Joe\\@gmail.com"
+
+CorrespAuthor_1: TRUE  # If corresponding author is author 3, e.g., use CorrespAuthor_3: TRUE
+
+# Comment out below to remove both. JEL Codes only given if keywords also given.
+# keywords: "Multivariate GARCH \\sep Kalman Filter \\sep Copula" # Use \\sep to separate
+# JELCodes: "L250 \\sep L100"
+
+# ----- Manage headers and footers:
+#BottomLFooter: $Title$
+#BottomCFooter:
+#TopLHeader: \leftmark # Adds section name at topleft. Remove comment to add it.
+BottomRFooter: "\\footnotesize Page \\thepage" # Add a '#' before this line to remove footer.
+addtoprule: TRUE
+addfootrule: TRUE               # Use if footers added. Add '#' to remove line.
+
+# --------- page margins:
+margin: 2.3 # Sides
+bottom: 2 # bottom
+top: 2.5 # Top
+HardSet_layout: TRUE # Hard-set the spacing of words in your document. This will stop LaTeX squashing text to fit on pages, e.g.
+# This is done by hard-setting the spacing dimensions. Set to FALSE if you want LaTeX to optimize this for your paper.
+
+# --------- Line numbers
+linenumbers: FALSE # Used when submitting to journal
+
+# ---------- References settings:
+# You can download cls format here: https://www.zotero.org/ - simply search for your institution. You can also edit and save cls formats here: https://editor.citationstyles.org/about/
+# Hit download, store it in Tex/ folder, and change reference below - easy.
+bibliography: Tex/ref.bib       # Do not edit: Keep this naming convention and location.
+csl: Tex/harvard-stellenbosch-university.csl # referencing format used.
+# By default, the bibliography only displays the cited references. If you want to change this, you can comment out one of the following:
+#nocite: '@*' # Add all items in bibliography, whether cited or not
+# nocite: |  # add specific references that aren't cited
+#  @grinold2000
+#  @Someoneelse2010
+
+# ---------- General:
+RemovePreprintSubmittedTo: TRUE  # Removes the 'preprint submitted to...' at bottom of titlepage
+Journal: "Journal of Finance"   # Journal that the paper will be submitting to, if RemovePreprintSubmittedTo is set to TRUE.
+toc: FALSE                       # Add a table of contents
+numbersections: TRUE             # Should sections (and thus figures and tables) be numbered?
+fontsize: 11pt                  # Set fontsize
+linestretch: 1.2                # Set distance between lines.
+link-citations: TRUE            # This creates dynamic links to the papers in reference list.
+
+### Adding additional latex packages:
+# header-includes:
+#    - \usepackage{colortbl} # Add additional packages here.
+
+output:
+  pdf_document:
+    keep_tex: TRUE
+    template: Tex/TexDefault.txt
+    fig_width: 8 # Adjust default figure sizes. This can also be done in the chunks of the text.
+    fig_height: 8
+abstract: |
+ In this report, I explored various aspects of mobile apps, including their earnings, user reviews, and sentiment analysis. I investigated the relationship between app categories, earnings, and user sentiment to gain insights into their interplay. Additionally, I examined the limitations and potential biases associated with relying solely on user reviews as a metric for app success.
+---
+
+<!-- First: Set your default preferences for chunk options: -->
+
+<!-- If you want a chunk's code to be printed, set echo = TRUE. message = FALSE stops R printing ugly package loading details in your final paper too. I also suggest setting warning = FALSE and checking for warnings in R, else you might find ugly warnings in your paper. -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 5, fig.pos="H", fig.pos = 'H')
+# Note: Include = FALSE implies the code is executed, but not printed in your pdf.
+# warning and message = FALSE implies ugly messages and warnings are removed from your pdf.
+# These should be picked up when you execute the command chunks (code sections below) in your rmd, not printed in your paper!
+
+# Lets load in example data, and see how this can be stored and later called from your 'data' folder.
+if(!require("tidyverse")) install.packages("tidyverse")
+library(tidyverse)
+Example_data <- Texevier::Ex_Dat
+
+# Notice that as you are working in a .Rproj file (I am assuming you are) - the relative paths of your directories start at your specified root.
+# This means that when working in a .Rproj file, you never need to use getwd() - it is assumed as your base root automatically.
+write_rds(Example_data, path = "data/Example_data.rds")
+
+apps <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/googleplay/googleplaystore.csv")
+reviews <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/googleplay/googleplaystore_user_reviews.csv")
+
+
+apps_complete <- full_join(apps,reviews, by="App")
+
+```
+
+
+<!-- ############################## -->
+<!-- # Start Writing here: -->
+<!-- ############################## -->
+
+# Introduction \label{Introduction}
+
+Mobile apps have become an integral part of our daily lives, offering a wide range of functionalities and entertainment options. Understanding the dynamics between app categories, earnings, and user sentiments is crucial for app developers, marketers, and decision-makers. In this analysis, I delve into the characteristics of different app categories and their implications for earnings and user reviews.
+
+
+
+<!-- The following is a code chunk. It must have its own unique name (after the r), or no name. After the comma follows commands for R which are self-explanatory. By default, the code and messages will not be printed in your pdf, just the output: -->
+
+```{r Figure1,  warning =  FALSE, fig.align = 'center', fig.cap = "Caption Here \\label{Figure1}", fig.ext = 'png', fig.height = 3, fig.width = 6}
+
+
+```
+
+
+```{r Figure2, warning =  FALSE, fig.align = 'center', fig.cap = "Caption Here \\label{Figure2}", fig.height = 3, fig.width = 6, dev = 'png'}
+
+
+
+
+
+```
+
+
+
+
+
+<!-- :::::: {.columns data-latex="[T]"} -->
+<!-- ::: {.column data-latex="{0.7\textwidth}"} -->
+<!-- ```{r, echo=FALSE, fig.width=4, fig.height=4} -->
+<!-- par(mar = c(4, 4, .2, .1)) -->
+<!-- plot(cars, pch = 19) -->
+<!-- ``` -->
+<!-- ::: -->
+<!-- ::: {.column data-latex="{0.05\textwidth}"} -->
+<!-- \ -->
+<!-- ::: -->
+<!-- ::: {.column data-latex="{0.2\textwidth}"} -->
+<!-- \scriptsize -->
+
+<!-- ## Data {-} -->
+<!-- The figure on the left-hand side shows the `cars` data. -->
+
+<!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do -->
+<!-- eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut -->
+<!-- enim ad minim veniam, quis nostrud exercitation ullamco laboris -->
+<!-- nisi ut aliquip ex ea commodo consequat. -->
+<!-- ::: -->
+<!-- :::::: -->
+
+
+
+
+
+<!-- $$ -->
+<!-- This is a commented out section in the writing part. -->
+<!-- Comments are created by highlighting text, amnd pressing CTL+C -->
+<!-- \\begin{align} -->
+<!-- \\beta = \\alpha^2 -->
+<!-- \end{align} -->
+<!-- $$ -->
+
+
+# Part A
+Plotting Earnings by Category and Rating
+
+Through an analysis of the apps data, I explore the relationship between app categories, ratings, and their respective earnings. The purpose of this analysis is to determine if ratings play a significant role in determining app earnings and to identify the top-earning categories.
+
+The findings reveal an intriguing insight: ratings do not seem to be the sole determining factor for app earnings. Instead, we observe that certain app categories consistently outperform others in terms of earnings.
+
+The top five app categories that exhibit the highest earnings are Family, Lifestyle, Finance, Games, and Photography. This information can be invaluable for developers, investors, and industry professionals seeking to make informed decisions about app development and monetization strategies.
+
+Overall, this analysis highlights the significance of app category selection and the potential impact it can have on earnings. While ratings may influence user perception and adoption, it is ultimately the app category that plays a pivotal role in determining financial success.
+
+
+```{r load-packages, include=FALSE}
+library(dplyr)
+library(tidytext)
+library(knitr)
+library(maps)
+library(ggthemes)
+library(ggplot2)
+library(patchwork)
+library(purrr)
+library(ggplot2)
+library(dplyr)
+library(pacman)
+library(ggpubr)
+library(tseries)  
+library(dynlm)
+library(zoo)
+library(sandwich)
+library(car)
+library(vars)
+library(dplyr)
+library(gridExtra)
+library(grid)
+library(extrafont)
+library(urca)
+library(lmtest)
+library(plm)
+library(lfe)
+library(geepack)
+library(tidyverse)
+```
+
+
+```{r, fig.height=8,fig.width=8, out.extra='angle=90'}
+
+apps_processed <- apps_complete %>%
+  mutate(
+    Price = as.numeric(gsub("\\$", "", Price)),
+    Installs = as.numeric(gsub("[+,]", "", Installs))
+  )
+
+# Calculate total earnings (Price * Installs) for each app
+earnings <- apps_processed %>%
+  mutate(total_earnings = Price * Installs)
+
+
+
+apps_processed <- apps_complete %>%
+  mutate(
+    Price = as.numeric(gsub("\\$", "", Price)),
+    Installs = as.numeric(gsub("[+,]", "", Installs)),
+    Size = ifelse(grepl("M$", Size), as.numeric(gsub("M$", "", Size)) * 1000000, NA)
+  ) %>%
+  inner_join(
+    earnings %>% 
+      group_by(Category) %>% 
+      summarize(total_earnings = sum(total_earnings, na.rm = TRUE)),
+    by = "Category"
+  ) %>%
+  group_by(Category) %>%
+  summarize(average_rating = mean(Rating, na.rm = TRUE), average_earnings = mean(total_earnings, na.rm = TRUE))
+
+apps_processed <- na.omit(apps_processed)
+
+library(ggplot2)
+
+
+# Plot the earnings by category with rating
+ggplot(apps_processed) +
+  geom_segment(aes(x = Category, xend = Category, y = 0, yend = average_earnings), color = "gray") +
+  geom_point(aes(x = Category, y = average_earnings, size = average_rating, colour = Category)) +
+  labs(x = "Category", y = "Average Earnings", title = "Earnings by Category with Rating") +
+  theme_minimal() +
+  coord_flip()+
+    scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+```
+
+# Part B
+Analysis of Sentiments and Reviews by Category
+
+In this section, I delve into the sentiments expressed in customer reviews for the top five categories identified in the previous section. The analysis aims to shed light on the prevalence of positive, negative, and neutral sentiments within each category, providing insights into customer perceptions and experiences.
+
+To begin, I quantify the number of positive, negative, and neutral sentiments for each category. This initial step allows us to understand the sentiment distribution and identify any significant patterns or variations across categories. Next, I explore the total number of reviews for each category. By considering the overall review volume, we gain a sense of the level of customer engagement and interest within each category. To gain a more comprehensive understanding, I calculate the percentage of positive, negative, and neutral reviews for each category by dividing the sentiments by the total reviews. This normalization allows us to compare sentiments across categories, considering the differences in review volume.
+
+Based on the calculated percentages, I present a table that showcases the distribution of positive, neutral, and negative reviews as a percentage of the total reviews for each category. This table provides a concise overview of the sentiment composition within each category.
+
+Despite Photography being the category with the least earnings among the five categories (Lifestyle, Family, Game, Finance, and Photography), it surprisingly receives the highest number of positive reviews. This finding suggests that relying solely on reviews as a metric may not be a reliable indicator for predicting prospective earnings. Other factors such as user preferences, marketing strategies, and market demand may play significant roles in determining the success of an app within a particular category.
+
+
+```{r, fig.height=8, fig.width=6}
+#do the following: first look at how many postive and negative and neutral sentiments there are per category, then look at total reviews per category, then divideive the sentiments per category by the total reviews to get a percentage
+library(tidyverse)
+# Calculate the number of positive, negative, and neutral sentiments per category
+
+top_categories <- c("LIFESTYLE", "FAMILY", "GAME", "FINANCE","PHOTOGRAPHY")
+sentiment_counts <- apps_complete %>%
+    filter(Category %in% top_categories) %>% 
+  group_by(Category, Sentiment) %>%
+  summarise(count = n()) %>% 
+  filter(Sentiment != "nan" & !is.na(Sentiment))
+
+#total sentiments 
+total_sentiments <- sentiment_counts %>%
+  group_by(Category) %>%
+  summarise(total = sum(count))
+
+# Calculate the percentage of each sentiment
+sentiment_percentages <- sentiment_counts %>%
+  left_join(total_sentiments, by = "Category") %>%
+  mutate(percentage = count / total * 100)
+
+
+
+# Display all categories/rows in sentiment_percentages dataframe
+knitr::kable(sentiment_percentages, col.names = c('Category', 'Sentiment', 'Count', 'Total', 'Percentage'), row.names = TRUE,caption = "App Sentiment")
+
+
+```
+
+
+
+\hfill
+
+<!-- hfill can be used to create a space, like here between text and table. -->
+
+# Conclusion
+
+The relationship between app categories, earnings, and user sentiment is complex and multifaceted. While positive reviews generally dominate across different app categories, it is crucial to consider additional factors such as user preferences, marketing strategies, and market demand when assessing the potential success of an app. A prime example is the category "Photography", it had relatively lower earnings compared to other categories, but it surprisingly received the highest number of positive reviews. This discrepancy highlights the limitations of using user reviews as a sole metric for determining app success, as factors beyond reviews may influence the earnings potential of an app.
+
+
+
+

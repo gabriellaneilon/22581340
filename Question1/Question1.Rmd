@@ -3,7 +3,7 @@
 # Remove comments and add values where applicable.
 # The descriptions below should be self-explanatory
 
-title: "22581340_Q1"
+title: "22581340_COVID"
 #subtitle: "This will appear as Right Header"
 
 documentclass: "elsarticle"
@@ -89,10 +89,10 @@ output:
   pdf_document:
     keep_tex: TRUE
     template: Tex/TexDefault.txt
-    fig_width: 3.5 # Adjust default figure sizes. This can also be done in the chunks of the text.
-    fig_height: 3.5
+    fig_width: 8 # Adjust default figure sizes. This can also be done in the chunks of the text.
+    fig_height: 8
 abstract: |
-  The first question deals with Happiness. Will write more for final exam, this is just to test how it works. All of the write-ups will be subpar, as the purpose is first to get the hand of things.
+ In this report I explore how and why different continents were affected differently, underlying habits and comorbifities that worsens its affects and how regions' institutions reacted to the pandemic through facsilities. 
 ---
 
 <!-- First: Set your default preferences for chunk options: -->
@@ -123,19 +123,16 @@ write_rds(Example_data, path = "data/Example_data.rds")
 
 # Introduction \label{Introduction}
 
-Write a short introduction of the question and what you will be doing
-
-
-
-
-# You can make this question 1a for e.g. or do some exploratory things\label{Exploratory things}
-
-write what you're going to be doing
+The objective of this analysis is to explore the interplay between new COVID-19 cases, deaths, and the strictness of lockdown measures in diverse regions. Through a comprehensive examination of these variables, we seek to discern the efficacy of implemented measures and uncover the fundamental factors driving the observed patterns in case and mortality rates.
 
 <!-- The following is a code chunk. It must have its own unique name (after the r), or no name. After the comma follows commands for R which are self-explanatory. By default, the code and messages will not be printed in your pdf, just the output: -->
 
 ```{r Figure1,  warning =  FALSE, fig.align = 'center', fig.cap = "Caption Here \\label{Figure1}", fig.ext = 'png', fig.height = 3, fig.width = 6}
+death_cause <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Covid/Deaths_by_cause.csv")
 
+covid_data <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Covid/owid-covid-data.csv")
+
+covid_description <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Covid/covid_data_description.csv")
 
 ```
 
@@ -145,7 +142,8 @@ write what you're going to be doing
 
 source("code/Example_Plot_Scatter.R") # Load a function from your 'code' folder. This e.g. plots scatters to your own preferences.
 source( "code/Data_Create.R") 
-
+source("code/plot_covid_continent_data.R") 
+options(knitr.duplicate.label = "allow")
 #obviously use your own paths
 
 
@@ -153,8 +151,6 @@ source( "code/Data_Create.R")
 ```
 
 
-
-# Here you can do the second part of your Question/Results
 
 
 
@@ -194,41 +190,107 @@ source( "code/Data_Create.R")
 <!-- $$ -->
 
 
-## Subsection
-Write down stuff here on your train of thought maybe
+# Part A
+In the graph below, I analysed the relationship between new COVID-19 cases and subsequent deaths across different regions during the COVID-19 period. I also considered the strictness of lockdown measures, represented by a score ranging from 0 to 100. This graph prompted further investigation into the underlying reasons behind the high case and death rates.
+
+The graph reveals noticeable patterns between new cases and the strictness of measures implemented. For instance, North America, which scored the highest on the "strictness" scale, exhibited the lowest number of new cases and subsequent deaths. In contrast, Europe, the continent with the least strict measures, had the highest number of COVID-19 cases and deaths. This observation may be attributed to Europe's high population density, leading to increased contact and transmission.
+
+Interestingly, the African region demonstrated a relatively high strictness score but also reported a significant number of new cases and deaths. This raises questions about factors such as inadequate healthcare facilities or limited vaccination rollouts that might contribute to the situation in this region.
 
 
 
-```{r ShortTable, results = 'asis'}
+```{r}
 
+
+plot_stringency(covid_data)
+
+```
+
+## Vaccination rollout and GDP per capita
+As expected, continents with a higher GDP per capita demonstrate a stronger vaccination rollout per million people. However, it is surprising to note that despite this higher vaccination rate, certain continents (particularly Europe) still experience the highest number of new deaths. This observation raises questions about the underlying factors contributing to the persistently high mortality rates in these regions, despite their comparatively stronger vaccination efforts.
+ 
+
+```{r}
+source( "code/analyze_covid_data.R") 
+analyze_covid_data(covid_data)
+
+```
+
+# Part B
+In this section, I will examine two specific groups: individuals with diabetes and smokers. Diabetes is considered a comorbidity for COVID-19 deaths, while smoking weakens lung function, which can be further compromised by COVID-19. 
+
+Based on the graphs for both smokers and individuals with diabetes, we observe that the statement regarding the likelihood of COVID-19-related deaths holds true in 49.5% of countries. This determination is made using the median of global smoker and diabetes rates as the threshold for the statement.
+
+
+
+```{r, fig.height=8, fig.width=8, out.extra='angle=90'}
+library(ggplot2)
+library(gridExtra)
+source("code/plot_relationship.R") 
+plot_relationship(covid_data)
+
+```
+
+# Part C
+To examine the relationship between the increase in ICU admissions and facilities across continents, hospital beds were used as a proxy for these facilities. The analysis focused on the number of days since the first COVID-19 infection, with some continents excluded due to data limitations. The graph below illustrates notable trends: Asia demonstrates a delayed increase in facilities, occurring after approximately 500 days since the first infection, while Europe shows an immediate increase. In contrast, South America exhibits no noticeable increase in facilities over time.
+```{r}
+library(ggplot2)
+library(dplyr)
+
+
+continents <- c("Asia", "Africa", "Europe", "North America", "South America", "Oceania")
+
+
+
+days_since_first_infection <-  covid_data %>%
+  filter(total_cases >= 1) %>%
+  filter(continent %in% continents) %>%
+  group_by(continent) %>%
+  mutate(date = as.Date(date)) %>%
+  arrange(continent) %>%
+  mutate(DaysSinceCase1 = as.numeric(date - min(date))) %>%
+  mutate(increase_facilities = hospital_beds_per_thousand,
+         increase_icu_admissions = weekly_icu_admissions_per_million) %>% 
+    dplyr::select(continent, date, increase_facilities,increase_icu_admissions, DaysSinceCase1) %>%
+  ungroup()
+
+complete_data <- na.omit(days_since_first_infection)
+
+
+library(scales)
+
+ggplot(data = complete_data) +
+  geom_bar(aes(x = DaysSinceCase1, y = rescale(increase_facilities), fill = "Facilities"), stat = "identity", width = 0.5) +
+  geom_line(aes(x = DaysSinceCase1, y = rescale(increase_icu_admissions), colour = continent), size = 1.5) +
+  facet_wrap(~continent, nrow = 2) +
+  labs(title = "Increase in Facilities and ICU Admissions over Time by Continent",
+       x = "Days Since First Infection",
+       y = "Scaled Value") +
+  scale_fill_manual(values = c("Facilities" = "#1f77b4"), guide = guide_legend(title = "Data")) +
+  theme_minimal()
 
 
 ```
 
-## Another Subsection
-
-```{r LongTable, results = 'asis'}
-
-
-```
 
 \hfill
 
 <!-- hfill can be used to create a space, like here between text and table. -->
 
 
-# Conclusion/Discussion
+# Discussion
 
-Write short conclusion or discussion of all results
-I hope you find this template useful. Remember, stackoverflow is your friend - use it to find answers to questions. Feel free to write me a mail if you have any questions regarding the use of this package. To cite this package, simply type citation("Texevier") in Rstudio to get the citation for @Texevier (Note that uncited references in your bibtex file will not be included in References).
+The analysis of COVID-19 data across different regions highlights the importance of strict lockdown measures in controlling the spread of the virus. The observed patterns indicate that regions with higher strictness scores tend to have lower case and death rates, while regions with less strict measures experience higher rates of infection and mortality. The relationship between strictness scores and outcomes can be influenced by various factors, including population density and healthcare system capacity.
+
+The findings also shed light on the impact of comorbidities on COVID-19 mortality rates. Individuals with diabetes and smokers are identified as vulnerable groups, with a higher likelihood of experiencing severe outcomes. However, the analysis reveals that this statement holds true only in approximately 49.5% of countries, suggesting the presence of additional contributing factors.
+
+Examining the relationship between ICU admissions and facilities across continents provides insights into the preparedness and response capacity of healthcare systems. The delayed increase in facilities observed in Asia and the absence of noticeable growth in South America raise questions about the specific challenges and limitations faced by these regions.
+
+Overall, this analysis underscores the need for a comprehensive understanding of various factors influencing COVID-19 outcomes. It highlights the importance of stringent measures, considerations of comorbidities, and the capacity of healthcare systems in managing the pandemic effectively. Further research and investigation are necessary to explore the specific factors contributing to the persistently high mortality rates in certain regions, despite vaccination efforts and other interventions.
 <!-- Make title of bibliography here: -->
 <!-- \newpage -->
 
-\newpage
 
-# References {-}
-
-<div id="refs"></div>
 
 
 

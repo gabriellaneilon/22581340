@@ -164,7 +164,7 @@
 
 \begin{frontmatter}  %
 
-\title{22581340\_Q4}
+\title{22581340\_Netflix}
 
 % Set to FALSE if wanting to remove title (for submission)
 
@@ -184,9 +184,14 @@
 
 \begin{abstract}
 \small{
-The first question deals with Happiness. Will write more for final exam,
-this is just to test how it works. All of the write-ups will be subpar,
-as the purpose is first to get the hand of things.
+This report delves into several key aspects of the film industry,
+including the dominant genre, country, source of entertainment, dominant
+actors and directors, as well as a movie recommendation generator based
+on these specifications. By analyzing these elements, I uncover the
+prevalent genres and countries in the industry to identifying
+influential actors and directors. Furthermore, the movie recommendation
+generator serves as a practical tool for personalised film suggestions,
+taking into account specific preferences and criteria.
 }
 \end{abstract}
 
@@ -229,54 +234,157 @@ as the purpose is first to get the hand of things.
 \section{\texorpdfstring{Introduction
 \label{Introduction}}{Introduction }}\label{introduction}}
 
-Write a short introduction of the question and what you will be doing
+In this comprehensive report, I delve into various aspects of the movie
+industry, exploring genres, entertainment types, dominant countries,
+influential actors and directors, and even a movie generation
+recommender. Through meticulous analysis and visualization, I aim to
+provide insights into the fascinating world of movies, shedding light on
+trends, preferences, and recommendations. From examining popular genres
+to uncovering dominant production countries, this report offers a
+diverse perspective on the cinematic landscape.
 
-\hypertarget{you-can-make-this-question-1a-for-e.g.-or-do-some-exploratory-things}{%
-\section{\texorpdfstring{You can make this question 1a for e.g.~or do
-some exploratory
-things\label{Exploratory things}}{You can make this question 1a for e.g.~or do some exploratory things}}\label{you-can-make-this-question-1a-for-e.g.-or-do-some-exploratory-things}}
+\hypertarget{part-a}{%
+\section{Part A}\label{part-a}}
 
-write what you're going to be doing
+In this section I explore the most popular genres. Trends in Netflix
+content
 
-\hypertarget{here-you-can-do-the-second-part-of-your-questionresults}{%
-\section{Here you can do the second part of your
-Question/Results}\label{here-you-can-do-the-second-part-of-your-questionresults}}
+\includegraphics{Question4_files/figure-latex/unnamed-chunk-1-1.pdf}
 
-\hypertarget{subsection}{%
-\subsection{Subsection}\label{subsection}}
+Based on the graph presented above, it is evident that the most popular
+genre among the analyzed movies is drama, followed by comedy and
+thriller. On the other hand, the least popular genre appears to be
+western. These findings shed light on the preferences of viewers,
+highlighting the widespread appeal of emotionally engaging narratives
+and the enduring popularity of comedic and suspenseful storytelling.
 
-Write down stuff here on your train of thought maybe
+Moving forward, let's delve into the analysis of entertainment types to
+determine whether movies or shows hold greater popularity among
+audiences.
 
-\hypertarget{another-subsection}{%
-\subsection{Another Subsection}\label{another-subsection}}
+\includegraphics{Question4_files/figure-latex/unnamed-chunk-2-1.pdf}
+
+The graph clearly illustrates that movies enjoy a higher level of
+popularity compared to shows. This finding indicates that audiences have
+a stronger preference for movies as their preferred form of
+entertainment.
+
+\hypertarget{country-wide-analysis}{%
+\section{Country-wide Analysis}\label{country-wide-analysis}}
+
+In this section, I present a visual representation of the top 10
+countries in terms of dominant movie productions. By mapping these
+countries, we can gain valuable insights into the global landscape of
+the film industry and identify the key players in movie production.
+
+\includegraphics{Question4_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+\hypertarget{dominant-actors-and-directors}{%
+\section{Dominant actors and
+directors}\label{dominant-actors-and-directors}}
+
+In this section, I delve into the world of cinema to identify the top
+actors and directors per country and genre, based on their IMDb scores.
+By analyzing the IMDb scores, which serve as a measure of critical
+acclaim and audience appreciation, we can determine the leading talents
+in the film industry across different countries and genres. This
+exploration allows us to highlight the exceptional performances and
+directorial prowess that have garnered recognition and acclaim within
+their respective fields.
+
+\begin{table}
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-4}Dominant Actors}
+\centering
+\begin{tabular}[t]{l|l|l}
+\hline
+Country Code & Dominating Actor & Dominating Genre\\
+\hline
+ca & Ben Browder & scifi\\
+\hline
+cn & Benedict Lim & documentation\\
+\hline
+de & Keanu Reeves & horror\\
+\hline
+es & Caterina Murino & drama\\
+\hline
+fr & Michael Peterson & crime\\
+\hline
+gb & Leonardo DiCaprio & scifi\\
+\hline
+in & Darsheel Safary & family\\
+\hline
+jp & Koichi Yamadera & western\\
+\hline
+us & Jerry Seinfeld & comedy\\
+\hline
+\end{tabular}
+\end{table}\begin{table}
+
+\caption{\label{tab:unnamed-chunk-4}Dominant Directors}
+\centering
+\begin{tabular}[t]{l|l|l}
+\hline
+Country Code & Dominating Director & Dominating Genre\\
+\hline
+ca & Ben Browder & scifi\\
+\hline
+cn & Benedict Lim & documentation\\
+\hline
+de & Keanu Reeves & horror\\
+\hline
+es & Caterina Murino & drama\\
+\hline
+fr & Michael Peterson & crime\\
+\hline
+gb & Leonardo DiCaprio & scifi\\
+\hline
+in & Darsheel Safary & family\\
+\hline
+jp & Koichi Yamadera & western\\
+\hline
+us & Jerry Seinfeld & comedy\\
+\hline
+\end{tabular}
+\end{table}
+\end{table}
+
+\hypertarget{movie-recommendation}{%
+\section{Movie recommendation}\label{movie-recommendation}}
+
+For an entertaining twist, I have developed a movie generation
+recommender based on the exploratory analysis conducted. Specifically, I
+focused on a combination of criteria, including the name ``Caterina
+Murino,'' production countries limited to the United States, a minimum
+IMDb score of 8, and the genre specified as drama. By leveraging these
+parameters, the recommender system suggests movies that align with these
+specific preferences.
+
+\begin{verbatim}
+## [1] "365 Days: This Day"
+\end{verbatim}
 
 \hfill
 
-\hypertarget{conclusiondiscussion}{%
-\section{Conclusion/Discussion}\label{conclusiondiscussion}}
+\hypertarget{conclusion}{%
+\section{Conclusion}\label{conclusion}}
 
-Write short conclusion or discussion of all results I hope you find this
-template useful. Remember, stackoverflow is your friend - use it to find
-answers to questions. Feel free to write me a mail if you have any
-questions regarding the use of this package. To cite this package,
-simply type citation(``Texevier'') in Rstudio to get the citation for
-Katzke (\protect\hyperlink{ref-Texevier}{2017}) (Note that uncited
-references in your bibtex file will not be included in References).
+In conclusion, this report has taken us on a captivating journey through
+the realm of movies. We have witnessed the popularity of different
+genres, with drama, comedy, and thriller taking the lead. The
+exploration of entertainment types revealed movies to be the favored
+choice among audiences. By mapping dominant movie production countries,
+we gained a deeper understanding of the global nature of the film
+industry. Additionally, identifying top actors and directors based on
+IMDb scores showcased the talent and influence of these individuals
+across countries and genres.
 
-\newpage
-
-\hypertarget{references}{%
-\section*{References}\label{references}}
-\addcontentsline{toc}{section}{References}
-
-\hypertarget{refs}{}
-\begin{CSLReferences}{1}{0}
-\leavevmode\vadjust pre{\hypertarget{ref-Texevier}{}}%
-Katzke, N.F. 2017. \emph{{Texevier}: {P}ackage to create elsevier
-templates for rmarkdown}. Stellenbosch, South Africa: Bureau for
-Economic Research.
-
-\end{CSLReferences}
+To add an extra touch of enjoyment, I even developed a movie generation
+recommender, tailored to specific criteria, such as the name of an
+actress, desired production countries, IMDb score, and preferred genre.
+This tool serves as a fun way to discover captivating films that meet
+your specific preferences.
 
 \bibliography{Tex/ref}
 

@@ -3,7 +3,7 @@
 # Remove comments and add values where applicable.
 # The descriptions below should be self-explanatory
 
-title: "22581340_Q4"
+title: "22581340_Netflix"
 #subtitle: "This will appear as Right Header"
 
 documentclass: "elsarticle"
@@ -89,10 +89,10 @@ output:
   pdf_document:
     keep_tex: TRUE
     template: Tex/TexDefault.txt
-    fig_width: 3.5 # Adjust default figure sizes. This can also be done in the chunks of the text.
-    fig_height: 3.5
+    fig_width: 8 # Adjust default figure sizes. This can also be done in the chunks of the text.
+    fig_height: 8
 abstract: |
-  The first question deals with Happiness. Will write more for final exam, this is just to test how it works. All of the write-ups will be subpar, as the purpose is first to get the hand of things.
+  This report delves into several key aspects of the film industry, including the dominant genre, country, source of entertainment, dominant actors and directors, as well as a movie recommendation generator based on these specifications. By analyzing these elements, I uncover the prevalent genres and countries in the industry to identifying influential actors and directors. Furthermore, the movie recommendation generator serves as a practical tool for personalised film suggestions, taking into account specific preferences and criteria. 
 ---
 
 <!-- First: Set your default preferences for chunk options: -->
@@ -114,6 +114,11 @@ Example_data <- Texevier::Ex_Dat
 # This means that when working in a .Rproj file, you never need to use getwd() - it is assumed as your base root automatically.
 write_rds(Example_data, path = "data/Example_data.rds")
 
+#load data and get ready
+credits <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/netflix/credits.csv")
+titles <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/netflix/titles.csv")
+netflix <- full_join(credits, titles, by="id")
+
 ```
 
 
@@ -123,14 +128,8 @@ write_rds(Example_data, path = "data/Example_data.rds")
 
 # Introduction \label{Introduction}
 
-Write a short introduction of the question and what you will be doing
+In this comprehensive report, I delve into various aspects of the movie industry, exploring genres, entertainment types, dominant countries, influential actors and directors, and even a movie generation recommender. Through meticulous analysis and visualization, I aim to provide insights into the fascinating world of movies, shedding light on trends, preferences, and recommendations. From examining popular genres to uncovering dominant production countries, this report offers a diverse perspective on the cinematic landscape.
 
-
-
-
-# You can make this question 1a for e.g. or do some exploratory things\label{Exploratory things}
-
-write what you're going to be doing
 
 <!-- The following is a code chunk. It must have its own unique name (after the r), or no name. After the comma follows commands for R which are self-explanatory. By default, the code and messages will not be printed in your pdf, just the output: -->
 
@@ -153,8 +152,6 @@ source( "code/Data_Create.R")
 ```
 
 
-
-# Here you can do the second part of your Question/Results
 
 
 
@@ -194,41 +191,217 @@ source( "code/Data_Create.R")
 <!-- $$ -->
 
 
-## Subsection
-Write down stuff here on your train of thought maybe
+# Part A
+In this section I explore the most popular genres.
+Trends in Netflix content
+
+```{r load-packages, include=FALSE}
+library(dplyr)
+library(tidytext)
+library(knitr)
+library(maps)
+library(ggthemes)
+library(ggplot2)
+library(patchwork)
+library(purrr)
+library(ggplot2)
+library(dplyr)
+library(pacman)
+library(ggpubr)
+library(tseries)  
+library(dynlm)
+library(zoo)
+library(sandwich)
+library(car)
+library(vars)
+library(dplyr)
+library(gridExtra)
+library(grid)
+library(extrafont)
+library(urca)
+library(lmtest)
+library(plm)
+library(lfe)
+library(geepack)
+library(tidyverse)
+```
 
 
+```{r}
+# Calculate the count of each genre
+genre_counts <- netflix %>%
+  unnest_tokens(genre, genres) %>%
+  count(genre, sort = TRUE)
 
-```{r ShortTable, results = 'asis'}
+# Get the most popular genre
+most_popular_genre <- genre_counts$genre[1]
 
+# Calculate the count of each type (movies or shows)
+type_counts <- netflix %>%
+  count(type)
+
+# Get the most popular type
+most_popular_type <- type_counts$type[which.max(type_counts$n)]
+
+# Create a bar plot for genre counts
+
+
+# Create a bar plot with different colors for each genre
+ggplot(genre_counts, aes(x = genre, y = n, fill = genre)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Genre", y = "Count", title = "Genre Distribution") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  annotate("text", x = most_popular_genre, y = genre_counts$n[1], label = paste("Most Popular Genre:", most_popular_genre),
+           vjust = -0.8, hjust = 0, color = "red") +
+  coord_flip()
+```
+
+
+Based on the graph presented above, it is evident that the most popular genre among the analyzed movies is drama, followed by comedy and thriller. On the other hand, the least popular genre appears to be western. These findings shed light on the preferences of viewers, highlighting the widespread appeal of emotionally engaging narratives and the enduring popularity of comedic and suspenseful storytelling.
+
+Moving forward, let's delve into the analysis of entertainment types to determine whether movies or shows hold greater popularity among audiences.
+
+
+```{r, fig.height=8, fig.width=6}
+# Create a bar plot for type counts
+ggplot(type_counts, aes(x = type, y = n)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  labs(x = "Type", y = "Count", title = "Type Distribution") +
+  geom_text(aes(label = n), vjust = -0.3, color = "black", size = 4) 
+
+```
+
+The graph clearly illustrates that movies enjoy a higher level of popularity compared to shows. This finding indicates that audiences have a stronger preference for movies as their preferred form of entertainment. 
+
+
+# Country-wide Analysis
+In this section, I present a visual representation of the top 10 countries in terms of dominant movie productions. By mapping these countries, we can gain valuable insights into the global landscape of the film industry and identify the key players in movie production.
+
+```{r}
+# Load map data for the world
+world_map <- map_data("world")
+
+# Count the number of titles by country
+country_counts <- netflix %>%
+  unnest_tokens(country, production_countries) %>%
+  count(country) %>%
+  top_n(10, n) %>%
+  arrange(desc(n))
+
+# Define a named vector of country codes and names
+countries <- c(
+  "us" = "USA",
+  "in" = "India",
+  "gb" = "UK",
+  "jp" = "Japan",
+  "fr" = "France",
+  "ca" = "Canada",
+  "es" = "Spain",
+  "kr" = "South Korea",
+  "de" = "Germany",
+  "cn" = "China"
+)
+
+# Replace country codes with country names
+country_counts$country <- countries[country_counts$country]
+
+# Calculate the percentage of movies made in each country
+country_counts <- country_counts %>%
+  mutate(percentage = n / sum(n) * 100)
+
+# Merge data with map data
+merged_data_map <- merge(world_map, country_counts, by.x = "region", by.y = "country", all.x = TRUE)
+
+# Create a choropleth map with scaled fill color and percentage labels
+ggplot(merged_data_map, aes(x = long, y = lat, group = group, fill = percentage)) +
+  geom_polygon(color = "black", linewidth = 0.2) +
+  labs(fill = "Percentage of Movies", title = "Country-wise Analysis") +
+  theme_map()
+
+```
+
+
+# Dominant actors and directors
+
+In this section, I delve into the world of cinema to identify the top actors and directors per country and genre, based on their IMDb scores. By analyzing the IMDb scores, which serve as a measure of critical acclaim and audience appreciation, we can determine the leading talents in the film industry across different countries and genres. This exploration allows us to highlight the exceptional performances and directorial prowess that have garnered recognition and acclaim within their respective fields.
+
+```{r}
+
+# Define a named vector of country codes and names
+top_countries <- c(
+  "us" = "USA",
+  "in" = "India",
+  "gb" = "UK",
+  "jp" = "Japan",
+  "fr" = "France",
+  "ca" = "Canada",
+  "es" = "Spain",
+  "kr" = "South Korea",
+  "de" = "Germany",
+  "cn" = "China"
+)
+
+# Find the top actor per country and genre based on IMDb score
+
+filtered_data <- netflix %>%
+  unnest_tokens(country, production_countries) %>%
+  filter(country %in% names(top_countries)) %>%
+  unnest_tokens(genre, genres) %>%
+  group_by(country, genre) %>%
+  filter(imdb_score == max(imdb_score, na.rm = TRUE)) %>%
+  dplyr::select(country, genre, name, role, imdb_score)
+
+table_actor <- filtered_data %>%
+  filter(role == "ACTOR",
+         country!="kr") %>%
+  group_by(country) %>%
+  summarise(dominating_actor = first(name), dominating_genre = first(genre)) %>%
+  arrange(country)
+
+table_director <- filtered_data %>%
+  filter(role == "DIRECTOR",
+         country!="kr") %>%
+  group_by(country) %>%
+  summarise(dominating_director = first(name), dominating_genre = first(genre)) %>%
+  arrange(country)
+
+
+knitr::kables(
+  list(
+    # the first kable() to change column names
+    knitr::kable(
+      table_actor, col.names = c('Country Code', 'Dominating Actor', 'Dominating Genre'), valign = 't'
+    , caption = "Dominant Actors"),
+    # the second kable() to set the digits option
+    knitr::kable(table_actor, col.names = c('Country Code', 'Dominating Director', 'Dominating Genre'), valign = 't',caption = "Dominant Directors"
+    ))
+)
 
 
 ```
 
-## Another Subsection
+# Movie recommendation
+For an entertaining twist, I have developed a movie generation recommender based on the exploratory analysis conducted. Specifically, I focused on a combination of criteria, including the name "Caterina Murino," production countries limited to the United States, a minimum IMDb score of 8, and the genre specified as drama. By leveraging these parameters, the recommender system suggests movies that align with these specific preferences.
 
-```{r LongTable, results = 'asis'}
-
-
+```{r}
+source("code/generate_movie_recommendation.R")
+generate_movie_recommendation(netflix, name=="Caterina Murino", production_countries=="['US']", imdb_score>=8, genres=="['drama']")
 ```
+
 
 \hfill
 
 <!-- hfill can be used to create a space, like here between text and table. -->
 
 
-# Conclusion/Discussion
+# Conclusion
 
-Write short conclusion or discussion of all results
-I hope you find this template useful. Remember, stackoverflow is your friend - use it to find answers to questions. Feel free to write me a mail if you have any questions regarding the use of this package. To cite this package, simply type citation("Texevier") in Rstudio to get the citation for @Texevier (Note that uncited references in your bibtex file will not be included in References).
-<!-- Make title of bibliography here: -->
-<!-- \newpage -->
+In conclusion, this report has taken us on a captivating journey through the realm of movies. We have witnessed the popularity of different genres, with drama, comedy, and thriller taking the lead. The exploration of entertainment types revealed movies to be the favored choice among audiences. By mapping dominant movie production countries, we gained a deeper understanding of the global nature of the film industry. Additionally, identifying top actors and directors based on IMDb scores showcased the talent and influence of these individuals across countries and genres.
 
-\newpage
+To add an extra touch of enjoyment, I even developed a movie generation recommender, tailored to specific criteria, such as the name of an actress, desired production countries, IMDb score, and preferred genre. This tool serves as a fun way to discover captivating films that meet your specific preferences.
 
-# References {-}
 
-<div id="refs"></div>
+
 
 
 

@@ -1,5 +1,5 @@
 ---
-output:github_document
+output: github_document
   md_document:
     variant: 
 ---
@@ -39,4 +39,1087 @@ Texevier::create_template(directory = "/Users/gabriellaneilon/Library/Mobile Doc
 
 ```
 
+# Question 1
+## Prep data
+```{r}
+library(patchwork)
+library(purrr)
+library(ggplot2)
+library(dplyr)
+library(pacman)
+library(ggpubr)
+library(tseries)  
+library(dynlm)
+library(zoo)
+library(sandwich)
+library(car)
+library(vars)
+library(dplyr)
+library(gridExtra)
+library(grid)
+library(extrafont)
+library(urca)
+library(lmtest)
+library(plm)
+library(lfe)
+library(geepack)
+
+death_cause <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Covid/Deaths_by_cause.csv")
+
+covid_data <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Covid/owid-covid-data.csv")
+
+covid_description <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Covid/covid_data_description.csv")
+
+View(covid_data)
+
+```
+
+Part A: See if you can provide some insights using the dataset into how African countries’ experience
+differed from other regions.
+
+```{r}
+
+
+
+
+#now put it into a function
+plot_covid_continent_data <- function(covid_data) {
+    continents=c("Asia", "Africa", "Europe", "North America", "South America", "Oceania")
+  continent_data <- covid_data %>%
+    filter(continent %in% continents) %>%
+    group_by(continent) %>%
+    summarise(new_deaths = sum(new_deaths_smoothed_per_million, na.rm = TRUE),
+              new_cases = sum(new_cases_smoothed_per_million, na.rm = TRUE),
+              avg_stringency = mean(stringency_index, na.rm = TRUE))
+
+  ggplot(continent_data) +
+    geom_point(aes(x = new_deaths, y = new_cases, size = avg_stringency, color = continents)) +
+    labs(x = "New Deaths", y = "New Cases", size = "Average Stringency", color = "Continent") +
+    theme_minimal() +
+    scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+    scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+}
+
+# Usage
+plot_covid_continent_data(covid_data)
+
+
+#looking in more detail regarding vaccination and gdp per capita
+
+library(ggplot2)
+
+analyze_covid_data <- function(covid_data) {
+  # Filter relevant columns
+    continents=c("Asia", "Africa", "Europe", "North America", "South America", "Oceania")
+ 
+
+  # Calculate summary statistics
+  summary_stats <- covid_data %>%
+    filter(continent %in% continents) %>%
+    group_by(continent) %>%
+    summarize(new_deaths = sum(new_deaths_smoothed_per_million, na.rm = TRUE),
+              new_cases = sum(new_cases_smoothed_per_million, na.rm = TRUE),
+              vaccination_rollout = sum(new_vaccinations_smoothed_per_million, na.rm = TRUE),
+              avg_gdp_per_capita = sum(gdp_per_capita, na.rm = TRUE))
+
+  # Create the plot
+  plot <- ggplot(summary_stats) +
+    geom_point(aes(x = avg_gdp_per_capita, y = vaccination_rollout, size = new_deaths, color = continent)) +
+    labs(x = "GDP per capita", y = "Vaccination Rollout", size = "New Deaths", color = "Continent") +
+    theme_minimal() +
+    scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+    scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+  # Analyze the data
+  analysis <- paste("The analysis of COVID-19 data reveals the following:\n",
+                    "1. The average number of new deaths ranges from",
+                    min(summary_stats$new_deaths, na.rm = TRUE),
+                    "to", max(summary_stats$new_deaths, na.rm = TRUE),
+                    "across different continents.\n",
+                    "2. The average number of new cases ranges from",
+                    min(summary_stats$new_cases, na.rm = TRUE),
+                    "to", max(summary_stats$new_cases, na.rm = TRUE),
+                    "across different continents.\n",
+                    "3. The total number of vaccinations ranges from",
+                    min(summary_stats$vaccination_rollout, na.rm = TRUE),
+                    "to", max(summary_stats$vaccination_rollout, na.rm = TRUE),
+                    "across different continents.\n",
+                    "4. The average GDP per capita ranges from",
+                    min(summary_stats$avg_gdp_per_capita, na.rm = TRUE),
+                    "to", max(summary_stats$avg_gdp_per_capita, na.rm = TRUE),
+                    "across different continents.")
+
+  # Print the analysis
+  cat(analysis, "\n")
+
+  # Return the plot
+  return(plot)
+}
+
+analyze_covid_data(covid_data)
+
+
+
+```
+##Part B
+Provide some insights into whether countries with specific concentrated groupings (e.g. more
+poverty, higher prevalence of smokers, higher general life expectancy and elderly populations)
+displayed distinct patterns in the severity of their Covid experience.
+
+```{r}
+#testing for one example
+#figuring out if population density will work
+
+library(ggplot2)
+
+library(dplyr)
+
+library(dplyr)
+
+# Filter dataset to include only relevant columns
+library(dplyr)
+
+Plot_Cases_Density <- function(covid_data) {
+    continents <- c("Asia", "Africa", "Europe", "North America", "South America", "Oceania")
+  
+  df <- covid_data %>%
+    filter(continent %in% continents) %>%
+    group_by(continent, location) %>%
+    summarise(total_cases = max(new_cases_smoothed_per_million, na.rm = TRUE),
+              average_density = mean(population_density, na.rm = TRUE)) %>%
+    ungroup() %>%
+    group_by(continent) %>%
+    mutate(mean_density = mean(average_density, na.rm = TRUE))
+  
+  p <- ggplot(df, aes(x = continent, y = total_cases, fill = continent)) +
+      geom_jitter()+
+    geom_boxplot() +
+    geom_text(aes(y = max(mean_density), label = round(mean_density)),
+              color = "black", vjust = -1.5, size = 3) +
+    labs(title = "Boxplot of COVID-19 Cases by Continent",
+         x = "Continent",
+         y = "COVID-19 Cases") +
+    theme_bw() +
+    theme(plot.title = element_text(size = 14, face = "bold"),
+          axis.text.x = element_text(size = 12),
+          axis.text.y = element_text(size = 12),
+          axis.title = element_text(size = 12, face = "bold"))+
+      scale_y_continuous(labels = function(y) format(y, scientific = FALSE))+
+    coord_cartesian(ylim = c(0, 10000))
+  
+  print(p)
+}
+
+
+Plot_Cases_Density(covid_data)
+
+Extract_Greatest_New_Cases <- function(covid_data) {
+  aver_dens <- covid_data %>%
+    group_by(location, continent) %>%
+    summarise(average_density = mean(population_density, na.rm = TRUE),
+              total_cases = mean(new_cases_smoothed_per_million, na.rm = TRUE)) %>%
+    filter(!is.na(average_density)) %>% 
+    mutate(continent = first(continent)) %>%
+    ungroup() %>%
+    group_by(continent) %>%
+    mutate(greatest_new_cases = max(total_cases, na.rm = TRUE)) %>%
+    filter(total_cases == greatest_new_cases) %>%
+    dplyr::select(continent, location, greatest_new_cases, average_density) %>%
+    ungroup()
+
+  return(aver_dens)
+}
+
+
+# Usage example
+extracted_data <- Extract_Greatest_New_Cases(covid_data)
+
+#Now plot regression
+
+library(cowplot)
+Regression_Plot <- function(covid_data) {
+  # Filter out missing or infinite values
+  filtered_data <- covid_data %>%
+    filter(!is.na(new_cases_smoothed_per_million), !is.na(population_density))
+  
+  # Perform the regression for each continent
+  regression_models <- filtered_data %>%
+    group_by(continent) %>%
+    nest() %>%
+    mutate(regression = map(data, ~lm(new_cases_smoothed_per_million ~ population_density, data = .x)))
+  
+  # Plot the regression lines and scatter plots for each continent
+  plots <- regression_models %>%
+    mutate(
+      plot = map2(data, regression, ~{
+        ggplot(.x, aes(x = population_density, y = new_cases_smoothed_per_million)) +
+          geom_point() +
+          geom_smooth(method = "lm", se = FALSE, color = "blue") +
+          labs(x = "Population Density", y = "Total Cases", title = paste("Regression: Total Cases vs Population Density -", .y$continent)) +
+          theme_bw()
+      })
+    ) %>%
+    pull(plot)
+  
+  # Combine and arrange the plots
+  plot_grid(plotlist = plots, ncol = 2)
+}
+
+# Call the function with your COVID-19 data
+Regression_Plot(covid_data)
+
+
+
+
+
+try <- function(covid_data) {
+  conts <- c("Asia", "Africa", "Europe", "North America", "South America", "Oceania")
+  correlations <- vector("numeric", length(conts))
+  
+  for (i in seq_along(conts)) {
+    filt_data <- covid_data %>%
+      filter(continent == conts[i], !is.na(population_density), !is.na(new_cases_smoothed_per_million))
+     
+    
+    correlations[i] <- cor(filt_data$population_density, filt_data$new_cases_smoothed_per_million, method = "spearman")
+  }
+  
+  result <- data.frame(Continent = conts, correlation = correlations)
+  return(result)
+}
+
+result <- try(covid_data)
+print(result)
+
+
+
+library(ggplot2)
+library(dplyr)
+
+continents <- c("Asia", "Africa", "Europe", "North America", "South America", "Oceania")
+
+scatterplot <- covid_data %>%
+  filter(continent %in% continents, !is.na(population_density), !is.na(new_cases_smoothed_per_million)) %>% 
+  mutate(correlation = round(cor(population_density, new_cases_smoothed_per_million, method = "spearman", use = "complete.obs"), 4)) %>%
+  mutate(relationship = ifelse(correlation < 0.5 && correlation > 0, "Weak positive",
+                              ifelse(correlation >= 0.5 && correlation <= 1, "Strong positive",
+                                     ifelse(correlation > -0.5 && correlation < 0, "Weak negative",
+                                            ifelse(correlation <= -0.5 && correlation >= -1, "Strong negative",
+                                                   "No correlation"))))) 
+
+scatterplot <- ggplot(scatterplot, aes(x = population_density, y = new_cases_smoothed_per_million)) +
+  geom_point() +
+  geom_label(aes(label = paste0("Correlation: ", correlation)), 
+             size = 6, alpha = 0.8, fill = "red") +
+  geom_label(aes(label = paste0("Strength of relationship: ", relationship)), 
+             size = 6, alpha = 0.8, fill = "red") +
+  theme_bw() +
+  labs(title = "Relationship between New Cases and Population Density",
+       x = "Population Density",
+       y = "New Covid-19 Cases")
+
+scatterplot
+
+
+
+
+#I realised that population density can me a misleading measure, instead use other measures
+severity <- covid_data %>%
+  filter(!is.na(excess_mortality) & !is.na(human_development_index) & !is.na(continent) & continent %in% continents) %>%
+  group_by(location) %>%
+  summarize(new_deaths = sum(new_deaths_smoothed_per_million, na.rm = TRUE),
+            total_smokers = sum(female_smokers + male_smokers, na.rm = TRUE))
+
+threshold <- median(severity$total_smokers)
+severity$StatementTrue <- severity$total_smokers > threshold
+
+# Calculate the percentage of continents where the statement is true
+percentage <- sum(severity$StatementTrue) / nrow(severity) * 100
+
+# Create the scatter plot
+smoke <- ggplot(severity, aes(x = total_smokers, y = new_deaths)) +
+  geom_point() +
+  geom_hline(yintercept = threshold, linetype = "dashed", color = "red") +
+  theme_minimal() +
+  labs(title = "Relationship between Total Smokers and New Deaths from COVID-19",
+       x = "Total Smokers",
+       y = "New Deaths") +
+  annotate("text", x = 5000, y = 1000, label = paste0("Total Countries: ", nrow(severity))) +
+  annotate("text", x = 5000, y = 800, label = paste0("Statement True: ", round(percentage, 2), "%"),
+            color = "blue")
+
+
+#diabetes
+
+diabetes <- covid_data %>%
+  filter(!is.na(excess_mortality) & !is.na(human_development_index) & !is.na(continent) & continent %in% continents) %>%
+  group_by(location) %>%
+  summarize(new_deaths = sum(new_deaths_smoothed_per_million, na.rm = TRUE),
+            total_diabetes = sum(diabetes_prevalence, na.rm = TRUE))
+
+threshold2 <- median(diabetes$total_diabetes)
+diabetes$StatementTrue <- diabetes$total_diabetes > threshold2
+
+# Calculate the percentage of continents where the statement is true
+percentage2<- sum(severity$StatementTrue) / nrow(severity) * 100
+
+# Create the scatter plot
+diabetes_plot <- ggplot(diabetes, aes(x = total_diabetes, y = new_deaths)) +
+  geom_point() +
+  geom_hline(yintercept = threshold2, linetype = "dashed", color = "red") +
+  theme_minimal() +
+  labs(title = "Relationship between Diabetes and New Deaths from COVID-19",
+       x = "Diabetes",
+       y = "New Deaths") +
+  annotate("text", x = 500, y = 750, label = paste0("Total Countries: ", nrow(diabetes))) +
+  annotate("text", x = 500, y = 700, label = paste0("Statement True: ", round(percentage2, 2), "%"),
+            color = "blue")
+
+
+#function
+library(ggplot2)
+library(gridExtra)
+
+plot_relationship <- function(covid_data) {
+    severity <- covid_data %>%
+        filter(!is.na(excess_mortality) & !is.na(human_development_index) & !is.na(continent) & continent %in% continents) %>%
+        group_by(location) %>%
+        summarize(new_deaths = sum(new_deaths_smoothed_per_million, na.rm = TRUE),
+                  total_smokers = sum(female_smokers + male_smokers, na.rm = TRUE))
+
+    threshold <- median(severity$total_smokers)
+    severity$StatementTrue <- severity$total_smokers > threshold
+
+    # Calculate the percentage of continents where the statement is true
+    percentage <- sum(severity$StatementTrue) / nrow(severity) * 100
+
+    # Create the scatter plot
+    smoke <- ggplot(severity, aes(x = total_smokers, y = new_deaths)) +
+        geom_point() +
+        geom_hline(yintercept = threshold, linetype = "dashed", color = "red") +
+        theme_minimal() +
+        labs(title = "Relationship between Total Smokers and New Deaths from COVID-19",
+             x = "Total Smokers",
+             y = "New Deaths") +
+        annotate("text", x = 5000, y = 1000, label = paste0("Total Countries: ", nrow(severity))) +
+        annotate("text", x = 5000, y = 800, label = paste0("Statement True: ", round(percentage, 2), "%"),
+                 color = "blue")
+
+
+    #diabetes
+
+    diabetes <- covid_data %>%
+        filter(!is.na(excess_mortality) & !is.na(human_development_index) & !is.na(continent) & continent %in% continents) %>%
+        group_by(location) %>%
+        summarize(new_deaths = sum(new_deaths_smoothed_per_million, na.rm = TRUE),
+                  total_diabetes = sum(diabetes_prevalence, na.rm = TRUE))
+
+    threshold2 <- median(diabetes$total_diabetes)
+    diabetes$StatementTrue <- diabetes$total_diabetes > threshold2
+
+    # Calculate the percentage of continents where the statement is true
+    percentage2<- sum(diabetes$StatementTrue) / nrow(diabetes) * 100
+
+    # Create the scatter plot
+    diabetes_plot <- ggplot(diabetes, aes(x = total_diabetes, y = new_deaths)) +
+        geom_point() +
+        geom_hline(yintercept = threshold2, linetype = "dashed", color = "red") +
+        theme_minimal() +
+        labs(title = "Relationship between Diabetes and New Deaths from COVID-19",
+             x = "Diabetes",
+             y = "New Deaths") +
+        annotate("text", x = 500, y = 750, label = paste0("Total Countries: ", nrow(diabetes))) +
+        annotate("text", x = 500, y = 700, label = paste0("Statement True: ", round(percentage2, 2), "%"),
+                 color = "blue")
+
+    return(grid.arrange(smoke, diabetes_plot, nrow = 2))
+
+}
+
+
+#plot
+plot_relationship(covid_data)
+
+
+
+
+```
+## Part C
+
+Show how quickly different regions increased their hospitalization facilities, and whether
+this led or lagged ICU admissions.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+
+continents <- c("Asia", "Africa", "Europe", "North America", "South America", "Oceania")
+
+
+
+days_since_first_infection <-  covid_data %>%
+  filter(total_cases >= 1) %>%
+  filter(continent %in% continents) %>%
+  group_by(continent) %>%
+  mutate(date = as.Date(date)) %>%
+  arrange(continent) %>%
+  mutate(DaysSinceCase1 = as.numeric(date - min(date))) %>%
+  mutate(increase_facilities = hospital_beds_per_thousand,
+         increase_icu_admissions = weekly_icu_admissions_per_million) %>% 
+    dplyr::select(continent, date, increase_facilities,increase_icu_admissions, DaysSinceCase1) %>%
+  ungroup()
+
+complete_data <- na.omit(days_since_first_infection)
+
+ggplot(data = complete_data) +
+  geom_line(aes(x = DaysSinceCase1, y = increase_facilities, colour = continent), size = 1) +
+  geom_line(aes(x = DaysSinceCase1, y = increase_icu_admissions, colour = continent), size = 1, linetype="dashed") +
+  facet_wrap(~continent, nrow = 2) +
+  labs(title = "Increase in Facilities and ICU Admissions over Time by Continent",
+       x = "Days Since First Infection",
+       y = "Count") +
+  scale_color_discrete(name = "Continent") +
+  theme_minimal()
+
+
+
+library(scales)
+
+ggplot(data = complete_data) +
+  geom_bar(aes(x = DaysSinceCase1, y = rescale(increase_facilities), fill = "Facilities"), stat = "identity", width = 0.5) +
+  geom_line(aes(x = DaysSinceCase1, y = rescale(increase_icu_admissions), colour = continent), size = 1.5) +
+  facet_wrap(~continent, nrow = 2) +
+  labs(title = "Increase in Facilities and ICU Admissions over Time by Continent",
+       x = "Days Since First Infection",
+       y = "Scaled Value") +
+  scale_fill_manual(values = c("Facilities" = "#1f77b4"), guide = guide_legend(title = "Data")) +
+  theme_minimal()
+
+
+
+
+```
+
+
+#Question 2: London weather
+You mentioned you will do some analytics to prove to her the contrary - so you reached out to
+your friend at the UK National Weather Service to get the data in Data/London to prove your
+point.
+Use any means possible to convince her of the state of the weather (and you may do some research
+outside of what is provided, e.g. get other regions’ aggregates if you’d like to contextualize it)
+- as she is a visual arts student she would naturally be more convinced by good looking figures
+rich with relevant content.
+You will also notice that there are two data files - one focussed on London, the other from the
+CET CENTRAL ENGLAND, UK weather station (middle of the country). The latter is more
+detailed, and column definitions are contained in the included
+
+
+```{r}
+weather <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/London/london_weather.csv")
+
+# Load the necessary libraries
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+# Assuming your dataset is stored in a variable called 'data'
+
+# Convert the date variable to a Date format
+weather$date <- as.Date(as.character(weather$date), format = "%Y%m%d")
+
+# Calculate the average daily sunshine duration for each month
+monthly_sunshine <- weather %>%
+  group_by(year = year(date), month = month(date)) %>%
+  summarize(avg_sunshine = mean(sunshine, na.rm = TRUE))
+
+# Create a line plot showing the monthly variation in sunshine duration
+ggplot(monthly_sunshine, aes(x = month, y = avg_sunshine, group = year)) +
+  geom_line(color = "blue") +
+  geom_point(color = "blue") +
+  labs(title = "Monthly Variation in Sunshine Duration",
+       x = "Month", y = "Average Daily Sunshine Duration") +
+  scale_x_continuous(breaks = 1:12, labels = month.abb) +
+  theme_bw()
+
+
+
+
+
+
+
+# Load the necessary libraries
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+# Convert the date variable to a Date format
+
+
+
+# Create a dual-axis line plot
+ggplot(weather, aes(x = date)) +
+  geom_line(aes(y = max_temp, color = "Maximum Temperature"), size = 1) +
+  geom_line(aes(y = min_temp, color = "Minimum Temperature"), size = 1, linetype = "dashed") +
+  scale_color_manual(values = c("Maximum Temperature" = "red", "Minimum Temperature" = "blue")) +
+  labs(title = "Temperature Extremes in London",
+       x = "Date", y = "Temperature (°C)") +
+  theme_bw() +
+  theme(legend.position = "top")
+
+
+
+
+
+
+
+
+
+```
+
+```{r}
+library(forecast)
+
+
+```
+
+
+##Question 3
+
+##bands
+Load data
+```{r}
+coldplay <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Coldplay_vs_Metallica/Coldplay.csv")
+
+# clean <- try[grepl(paste(c("Midnights \\(3am Edition\\)", "Taylor's Version", "deluxe version", "Deluxe Edition", "Live", "Radio", "Special", "Taylor Swift", "reputation", "Lover"), collapse = "|"), try$album, ignore.case = TRUE), ]
+
+
+coldplay_studio <- coldplay[!grepl(paste(c("Live", "Tour Edition", "\\(Live\\)", "\\(Prospekts March Edition\\)", "Love in Tokyo"), collapse = "|"), coldplay$album_name, ignore.case = TRUE), ]
+
+
+coldplay_studio <- coldplay_studio[!grepl(paste(c("Charlie Brown - Live from Glastonbury, 2011",
+                   "Life Is for Living - Live from Glastonbury, 2011",
+                   "Every Teardrop Is a Waterfall - Live from Glastonbury, 2011"), collapse = "|"), coldplay_studio$name, ignore.case = TRUE), ]
+coldplay_studio <- coldplay_studio %>% rename(album=album_name)
+
+
+metallica <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/Coldplay_vs_Metallica/metallica.csv")
+
+metallica_studio <- metallica[!grepl(paste(c("Live",  "\\(Remastered 2021\\)", "\\(Remastered Deluxe Box Set\\)", "\\(Deluxe / Remastered\\)", "\\(Deluxe Box Set / Remastered\\)", "Live In "), collapse = "|"), metallica$album, ignore.case = TRUE), ]
+
+rows_to_remove <- c("Live In Brazil (1993 \x93 2017)","Live In Argentina (1993 \x93 2017)", "Live In Chile (1993 \x93 2017)", "...And Justice For All","...And Justice for All (Remastered)", "Ride The Lightning (Remastered)","Kill Em All (Remastered)"  )
+metallica_studio <- metallica_studio[!metallica_studio$album %in% rows_to_remove, ]
+```
+
+#popularity per album
+```{r}
+
+library(glue)
+popularity_plot <- function(data, title) {
+    data%>% 
+  filter(!is.na(album)) %>%  # Exclude rows with NA album
+  mutate(album = factor(album),  # Specify the correct order of the album names
+         Text = ifelse(popularity == min(popularity, na.rm = TRUE), glue::glue("Lowest: {album}, ({name}) :{popularity}"), 
+                       ifelse(popularity == max(popularity, na.rm = TRUE), glue::glue("Highest: {album}, ({name}) :{popularity}"),
+                              NA_character_))) %>% 
+  ggplot() + 
+  geom_boxplot(aes(x = album, y = popularity, fill = album), alpha = 0.4) +
+  geom_jitter(aes(x = album, y = popularity, color = album), size = 3, alpha = 0.8) + 
+  ggrepel::geom_text_repel(aes(x = album, y = popularity, label = Text), force = TRUE, size = 3) +  # Adjust the size parameter for smaller text
+  theme_classic() + 
+  labs(x = "Albums", y = "Popularity",
+       title = title) + 
+  scale_color_hue(l = 40, c = 35) + 
+  guides(fill = FALSE, color = FALSE)+
+    theme(axis.title.x = element_text(face = "bold", colour = "black"),
+          axis.text.x = element_text(face = "italic", angle = 90),
+          axis.title.y = element_text(face = "bold", colour = "black"),
+          text = element_text(size = 12, family = "Times"))
+
+
+}
+
+popularity_plot(coldplay_studio, "Popularity per Album (Coldplay)")
+popularity_plot(metallica_studio, "Popularity per Album (Metallica")
+
+
+
+#for corr matrix maybe I will use this, but I think it will be too much to also include
+# cor_table <- data.frame(round(cor(coldplay_studio[,5:15], method = "pearson", use = "complete.obs"),4))
+# #plot correlation matrix
+# cor_table %>%
+#   rownames_to_column() %>%
+#   pivot_longer(-1) %>%
+#   ggplot(aes(x = name, y = rowname, fill = value)) +
+#   geom_tile() +
+#   geom_text(aes(label = value, family="Times")) +
+#   coord_equal() +
+#   scale_fill_gradient2(low = "blue3", mid = "white", high = "red3") +
+#   labs(x = NULL, y = NULL) +theme_classic()+theme(text=element_text(size=12, 
+#                                                                     family="Times"))
+
+
+
+```
+
+
+Style evolution
+```{r}
+#I suspect that most of the time popularity is linked with dancebility
+
+#i will maybe use
+# coldplay_studio %>%
+#   mutate(correlation = round(cor(danceability, acousticness, method = "spearman"), 4)) %>%
+#   mutate(relationship = ifelse(correlation < 0.5 && correlation > 0, "Weak positive",
+#                        ifelse(correlation >= 0.5 && correlation <= 1, "Strong positive",
+#                               ifelse(correlation > -0.5 && correlation < 0, "Weak negative",
+#                                      ifelse(correlation <= -0.5 && correlation >= -1, "Strong negative",
+#                                             "No correlation"))))) %>% 
+#   ggplot(aes(x=danceability, y=acousticness,)) +
+#   geom_point() +
+#   geom_label(aes(label = paste0("Correlation: ", correlation), x = 0.4, y = 1), 
+#              size = 2, alpha = 0.8, fill = "red") +
+#   geom_label(aes(label = paste0("Strength of relationship: ", relationship), x = 0.4, y = 1), 
+#              size =2, alpha = 0.8, fill = "red") +
+#   theme_bw() +
+#   labs(title = "Relationship between Acousticness and Danceability of Songs",
+#        x = "Danceability",
+#        y = "Popularity")
+
+
+
+
+# Modify the data preparation steps for TF-IDF
+library(dplyr)
+library(tidyr)
+library(tidytext)
+library(ggplot2)
+
+
+create_style_evolution_plot <- function(data, title) {
+    tfidf <- data %>%
+  distinct(album, acousticness, danceability, energy, instrumentalness, liveness, loudness, speechiness, valence, tempo) %>%
+  arrange(album)
+    
+  long_data <- tfidf %>%
+    tidyr::pivot_longer(cols = -album, names_to = "variable", values_to = "value")
+  
+  ggplot(long_data, aes(x = album, y = value, fill = variable)) +
+    geom_col(show.legend = FALSE) +
+    labs(x = "Variable", y = "Value", title = title) +
+    theme_minimal() +
+    facet_wrap(~variable, scales = "free", ncol = 5) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+}
+
+
+
+create_style_evolution_plot(coldplay_studio, "Evolution of Coldplay's Style")
+
+create_style_evolution_plot(metallica_studio, "Evolution of Metallica's Style")
+
+
+
+
+
+
+```
+
+Now look at emotions 
+```{r}
+#emotions of album
+classify_album_emotion <- function(data,title) {
+  # Define the threshold values
+  threshold <- list(acousticness = 0.2952089,
+                    danceability = 0.4178667,
+                    energy = 0.5618405,
+                    instrumentalness = 0.2120298,
+                    tempo = 124.3586,
+                    loudness = -9.406095,
+                    speechiness = 0.04195873,
+                    valence = 0.2333286)
+
+   data %>%
+    mutate(emotion = ifelse(acousticness > threshold$acousticness &
+                              danceability < threshold$danceability |
+                              energy < threshold$energy &
+                              instrumentalness > threshold$instrumentalness |
+                              tempo < threshold$tempo &
+                              loudness > threshold$loudness |
+                              speechiness < threshold$speechiness |
+                              valence < threshold$valence, "Sad", "Happy")) %>%
+    group_by(album, emotion) %>%
+    summarise(count = n()) %>%
+    mutate(proportion = count / sum(count)) %>% 
+       ggplot(aes(x = "", y = proportion, fill = emotion)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar(theta = "y") +
+    facet_wrap(~album) +
+    labs(x = NULL, y = NULL, fill = "Emotion", title = title) +
+    theme_minimal() +
+    theme(legend.position = "right") +
+    scale_fill_manual(values = c("Sad" = "lightblue", "Happy" = "gold"))
+}
+
+
+
+classify_album_emotion(coldplay_studio, "Emotion Classification by Album (Coldplay)")
+classify_album_emotion(metallica_studio, "Emotion Classification by Album(Metallica)")
+
+
+```
+#Question 4
+
+You’ve been supplied with data on most titles available on Netflix over time. Note
+for the column definitions: IMDb (an abbreviation of Internet Movie Database) is an online
+database of information related to films, television series, home videos, video games, and streaming
+content online – including cast, production crew and personal biographies, plot summaries,
+trivia, ratings, and fan and critical reviews.
+Given that you’re a respected quantitative analyst, you’ve been given full freedom by your
+superiors to explore the topic and supply insights from the data that you deem interesting.
+
+load data
+```{r}
+credits <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/netflix/credits.csv")
+titles <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/netflix/titles.csv")
+netflix <- full_join(credits, titles, by="id")
+```
+# insights
+Trends in Netflix Content:
+```{r}
+library(ggplot2)
+
+
+# Calculate the count of each genre
+genre_counts <- netflix %>%
+  unnest_tokens(genre, genres) %>%
+  count(genre, sort = TRUE)
+
+# Get the most popular genre
+most_popular_genre <- genre_counts$genre[1]
+
+# Calculate the count of each type (movies or shows)
+type_counts <- netflix %>%
+  count(type)
+
+# Get the most popular type
+most_popular_type <- type_counts$type[which.max(type_counts$n)]
+
+# Create a bar plot for genre counts
+
+
+# Create a bar plot with different colors for each genre
+ggplot(genre_counts, aes(x = genre, y = n, fill = genre)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Genre", y = "Count", title = "Genre Distribution") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  annotate("text", x = most_popular_genre, y = genre_counts$n[1], label = paste("Most Popular Genre:", most_popular_genre),
+           vjust = -0.8, hjust = 0, color = "red") +
+  coord_flip() 
+
+
+# Create a bar plot for type counts
+ggplot(type_counts, aes(x = type, y = n)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  labs(x = "Type", y = "Count", title = "Type Distribution") +
+  geom_text(aes(label = n), vjust = -0.3, color = "black", size = 4) +
+  annotate("text", x = most_popular_type, y = type_counts$n[which.max(type_counts$n)], label = paste("Most Popular Type:", most_popular_type),
+           vjust = -1.5, hjust = 0, color = "red")
+
+
+```
+
+Country-wise Analysis (Choropleth Map):
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(maps)
+library(ggthemes)
+
+library(dplyr)
+library(tidyr)
+library(maps)
+library(ggthemes)
+
+# Load map data for the world
+world_map <- map_data("world")
+
+# Count the number of titles by country
+country_counts <- netflix %>%
+  unnest_tokens(country, production_countries) %>%
+  count(country) %>%
+  top_n(10, n) %>%
+  arrange(desc(n))
+
+# Define a named vector of country codes and names
+countries <- c(
+  "us" = "USA",
+  "in" = "India",
+  "gb" = "UK",
+  "jp" = "Japan",
+  "fr" = "France",
+  "ca" = "Canada",
+  "es" = "Spain",
+  "kr" = "South Korea",
+  "de" = "Germany",
+  "cn" = "China"
+)
+
+# Replace country codes with country names
+country_counts$country <- countries[country_counts$country]
+
+# Calculate the percentage of movies made in each country
+country_counts <- country_counts %>%
+  mutate(percentage = n / sum(n) * 100)
+
+# Merge data with map data
+merged_data_map <- merge(world_map, country_counts, by.x = "region", by.y = "country", all.x = TRUE)
+
+# Create a choropleth map with scaled fill color and percentage labels
+ggplot(merged_data_map, aes(x = long, y = lat, group = group, fill = percentage)) +
+  geom_polygon(color = "black", linewidth = 0.2) +
+  labs(fill = "Percentage of Movies", title = "Country-wise Analysis") +
+  theme_map()
+
+
+ 
+ 
+
+
+```
+Popular actor per genre and imdb score
+```{r}
+
+library(tidyverse)
+
+
+# Define a named vector of country codes and names
+top_countries <- c(
+  "us" = "USA",
+  "in" = "India",
+  "gb" = "UK",
+  "jp" = "Japan",
+  "fr" = "France",
+  "ca" = "Canada",
+  "es" = "Spain",
+  "kr" = "South Korea",
+  "de" = "Germany",
+  "cn" = "China"
+)
+
+# Find the top actor per country and genre based on IMDb score
+filtered_data <- netflix %>%
+  unnest_tokens(country, production_countries) %>%
+  filter(country %in% names(top_countries)) %>%
+  unnest_tokens(genre, genres) %>%
+  group_by(country, genre) %>%
+  filter(imdb_score == max(imdb_score, na.rm = TRUE)) %>%
+  dplyr::select(country, genre, name, role,imdb_score)
+
+if ("role" %in% colnames(filtered_data) && "ACTOR" %in% filtered_data$role) {
+  top_actor <- filtered_data %>%
+    filter(role == "ACTOR") %>%
+    slice(1) %>%
+    pull(name)
+
+  top_actors <- filtered_data %>%
+    filter(name %in% top_actor) %>%
+    count(genre, name, country)
+
+  ggplot(top_actors) +
+     geom_point(aes(x = genre, y = count, size = imdb_score, colour = name))  +
+    labs(x = "Genre", y = "Count", title = "Dominant Name per Genre") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    facet_wrap(~ country, ncol = 2)
+} else {
+  print("No top actor found.")
+}
+
+
+filtered_data <- netflix %>%
+  unnest_tokens(country, production_countries) %>%
+  filter(country %in% names(top_countries)) %>%
+  unnest_tokens(genre, genres) %>%
+  group_by(country, genre) %>%
+  filter(imdb_score == max(imdb_score, na.rm = TRUE)) %>%
+  dplyr::select(country, genre, name, role, imdb_score)
+
+table_actor <- filtered_data %>%
+  filter(role == "ACTOR") %>%
+  group_by(country) %>%
+  summarise(dominating_actor = first(name), dominating_genre = first(genre)) %>%
+  arrange(country)
+
+table_director <- filtered_data %>%
+  filter(role == "DIRECTOR") %>%
+  group_by(country) %>%
+  summarise(dominating_director = first(name), dominating_genre = first(genre)) %>%
+  arrange(country)
+
+
+knitr::kables(
+  list(
+    # the first kable() to change column names
+    knitr::kable(
+      table_actor, col.names = c('Country Code', 'Dominating Actor', 'Dominating Genre'), valign = 't'
+    ),
+    # the second kable() to set the digits option
+    knitr::kable(table_actor, col.names = c('Country Code', 'Dominating Director', 'Dominating Genre'), valign = 't'
+    ))
+)
+
+
+
+```
+
+
+
+Movie recommendation example
+```{r}
+
+
+
+generate_movie_recommendation <- function(data, name, production_countries, imdb_score, genres) {
+  # Filter movies based on the provided features
+  filtered_movies <- data %>%
+    filter(
+      name %in% name,
+      production_countries == production_countries,
+      imdb_score >= imdb_score,
+      imdb_score %in% imdb_score
+    )
+
+  # Sort the movies by popularity or score, depending on preference
+  sorted_movies <- filtered_movies %>%
+    arrange(desc(tmdb_popularity))
+
+  # Return the top recommended movie
+  if (nrow(sorted_movies) > 0) {
+    top_movie <- sorted_movies[1, "title"]
+    return(top_movie)
+  } else {
+    return("No movie recommendation found.")
+  }
+}
+
+generate_movie_recommendation(netflix, name=="Caterina Murino", production_countries=="['US']", imdb_score>=8, genres=="['drama']")
+
+
+
+
+
+
+```
+
+# Question 5
+
+You’ve been given a detailed database of app downloads from Google by your superior, head of
+an App development company called AppallingDesigns.
+You are looking to develop a new app, but need some background information into App design
+trends.
+Give your editor some insight into which categories are most profitable and also some insights
+into app sizes, and more.
+You were also given a dataset of Reviews in your folder. You can use this as well to supplement
+your research - by considering some user feedback too
+
+
+Load data
+```{r}
+apps <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/googleplay/googleplaystore.csv")
+reviews <- read.csv("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/DatsciPractical23/data/googleplay/googleplaystore_user_reviews.csv")
+
+
+apps_complete <- full_join(apps,reviews, by="App")
+
+
+```
+
+lets start coding
+```{r}
+apps_processed %>%
+  mutate(total_earnings = Price * Installs)
+# Calculate total earnings (Price * Installs) for each app
+earnings <- apps_processed %>%
+   mutate(total_earnings = Price * Installs)
+ # Profitability by Category (Total Earnings)
+ profitability <- earnings %>%
+  group_by(Category) %>%
+   summarize(total_earnings = sum(total_earnings, na.rm = TRUE))
+ # Profitability by Category (Total Earnings)
+
+apps_processed <- apps_complete %>%
+  mutate(
+    Price = as.numeric(gsub("\\$", "", Price)),
+    Installs = as.numeric(gsub("[+,]", "", Installs)),
+    Size = ifelse(grepl("M$", Size), as.numeric(gsub("M$", "", Size)) * 1000000, NA)
+  ) %>%
+  inner_join(
+    earnings %>% 
+      group_by(Category) %>% 
+      summarize(total_earnings = sum(total_earnings, na.rm = TRUE)),
+    by = "Category"
+  ) %>%
+  group_by(Category) %>%
+  summarize(average_rating = mean(Rating, na.rm = TRUE), average_earnings = mean(total_earnings, na.rm = TRUE))
+
+apps_processed <- na.omit(apps_processed)
+
+library(ggplot2)
+
+
+# Plot the earnings by category with rating
+ggplot(apps_processed) +
+  geom_segment(aes(x = Category, xend = Category, y = 0, yend = average_earnings), color = "gray") +
+  geom_point(aes(x = Category, y = average_earnings, size = average_rating, colour = Category)) +
+  labs(x = "Category", y = "Average Earnings", title = "Earnings by Category with Rating") +
+  theme_minimal() +
+  coord_flip()+
+    scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+
+```
+Reviews
+```{r}
+
+#do the following: first look at how many postive and negative and neutral sentiments there are per category, then look at total reviews per category, then divideive the sentiments per category by the total reviews to get a percentage
+library(tidyverse)
+# Calculate the number of positive, negative, and neutral sentiments per category
+sentiment_counts <- apps_complete %>%
+  group_by(Category, Sentiment) %>%
+  summarise(count = n()) %>% 
+  filter(Sentiment != "nan" & !is.na(Sentiment))
+
+#total sentiments 
+total_sentiments <- sentiment_counts %>%
+  group_by(Category) %>%
+  summarise(total = sum(count))
+
+# Calculate the percentage of each sentiment
+sentiment_percentages <- sentiment_counts %>%
+  left_join(total_sentiments, by = "Category") %>%
+  mutate(percentage = count / total * 100)
+
+
+
+# Plot the sentiment percentages as pie charts for each category
+ggplot(sentiment_percentages, aes(x = "", y = percentage, fill = Sentiment)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  labs(x = NULL, y = NULL, title = "Sentiment Percentages per Category") +
+  scale_fill_manual(values = c("Positive" = "lightgreen", "Negative" = "pink", "Neutral" = "gold")) +
+  theme_void() +
+  facet_wrap(~ Category, ncol = 5) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_text(aes(label = paste0(round(percentage), "%")), position = position_stack(vjust = 0.5), size=4)
+
+
+
+# Display all categories/rows in sentiment_percentages dataframe
+knitr::kable(sentiment_percentages, col.names = gsub("[.]", " ", names(sentiment_percentages)), row.names = TRUE,caption = "An example table caption.")
+
+
+```
 
